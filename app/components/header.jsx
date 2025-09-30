@@ -64,7 +64,7 @@ export const Header = () => {
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <ul className="grid grid-cols-2 gap-6 p-6 text-gray-800 text-center font-medium">
+      <ul className="grid grid-cols-2 gap-2 p-8 text-gray-800 text-center font-medium">
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
