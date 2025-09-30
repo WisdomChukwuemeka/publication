@@ -43,7 +43,7 @@ export const Header = () => {
               <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500">
                 Submit an Article
               </button>
-              <div className="cursor-pointer" onClick={toggleMenu}>
+              <div className="cursor-pointer text-black" onClick={toggleMenu}>
                 {isMenuOpen ? (
                   <i className="bi bi-x-lg text-2xl xl:hidden"></i>
                 ) : (
