@@ -29,10 +29,36 @@ export const Header = () => {
             <ul className="hidden xl:flex space-x-6 text-one">
               <li className="li-hover">Home</li>
               <li className="li-hover">About</li>
-              <li className="li-hover">Journals</li>
-              <li className="li-hover">Conferences <i className="bi bi-chevron-down text-sm"></i></li>
+              <div className="relative group">
+              <li className="li-hover">Publications <i className="bi bi-chevron-down text-sm"></i></li>
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                <ul className="py-2">
+                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Journals</li>
+                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Books</li>
+                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Articles</li>
+                </ul>
+              </div>
+              </div>
+              <div className="relative group">
+                  <li className="li-hover">Conferences <i className="bi bi-chevron-down text-sm"></i></li>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                    <ul className="py-2">
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Upcoming Conferences</li>
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Past Conferences</li>
+                    </ul>
+                  </div>
+              </div>
               <li className="li-hover">Contact</li>
-              <li className="li-hover">Guidelines <i className="bi bi-chevron-down text-sm"></i></li>
+              <div className="relative group">
+                  <li className="li-hover">Guidelines <i className="bi bi-chevron-down text-sm"></i></li>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                    <ul className="py-2">
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Authors</li>
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Reviewers</li>
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Editors</li>
+                    </ul>
+                  </div>
+              </div>
               <li className="li-hover">Services</li>
               <li className="li-hover">Resources</li>
             </ul>
@@ -77,30 +103,59 @@ export const Header = () => {
         >
           About
         </li>
+        <div className="relative group">
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
         >
           Publications <i className="bi bi-chevron-down text-sm"></i>
+          <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+            {/* Dropdown content can be added here if needed */}
+            <ul className="py-2">
+              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Journals</li>
+              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Books</li>
+              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Articles</li>
+            </ul>
+          </div>
         </li>
+        </div>
+        <div className="relative group">
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
         >
-          Conferences
+          Conferences <i className="bi bi-chevron-down text-sm"></i>
         </li>
+        <div className="absolute top-9 right-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+          {/* Dropdown content can be added here if needed */}
+          <ul className="py-2">
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Upcoming Conferences</li>
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Past Conferences</li>
+          </ul>
+        </div>
+        </div>
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
         >
           Contact
         </li>
+        <div className="relative group">
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
         >
           Guidelines <i className="bi bi-chevron-down text-sm"></i>
         </li>
+        <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+          {/* Dropdown content can be added here if needed */}
+          <ul className="py-2">
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Authors</li>
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Reviewers</li>
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Editors</li>
+          </ul>
+        </div>
+        </div>
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
