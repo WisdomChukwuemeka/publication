@@ -69,7 +69,7 @@ export const Header = () => {
               <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500">
                 Submit an Article
               </button>
-              <div className="cursor-pointer" onClick={toggleMenu}>
+              <div className="cursor-pointer text-black" onClick={toggleMenu}>
                 {isMenuOpen ? (
                   <i className="bi bi-x-lg text-2xl xl:hidden"></i>
                 ) : (
@@ -90,7 +90,7 @@ export const Header = () => {
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <ul className="grid grid-cols-2 gap-6 p-6 text-gray-800 text-center font-medium">
+      <ul className="grid grid-cols-2 gap-2 p-8 text-gray-800 text-center font-medium">
         <li
           className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300"
           onClick={toggleMenu}
