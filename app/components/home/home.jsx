@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 // Text data in an array
 const highlights = [
@@ -50,23 +51,39 @@ const highlights = [
 const sections = [
   {
     title: "Thorough Evaluation",
-    description: "We adhere to a meticulous review process to confirm the article's scientific accuracy and logical outcomes",
+    description:
+      "We adhere to a meticulous review process to confirm the article's scientific accuracy and logical outcomes",
     icon: "bi-star",
   },
   {
     title: "Prompt Publishing",
-    description: "We recognize that swift editorial review and publication are crucial for scientific progress",
+    description:
+      "We recognize that swift editorial review and publication are crucial for scientific progress",
     icon: "bi-clock",
   },
   {
     title: "Connect with Readers",
-    description: "We assist in expanding your online presence, nurturing it, and ensuring your research is easily found",
+    description:
+      "We assist in expanding your online presence, nurturing it, and ensuring your research is easily found",
     icon: "bi-people",
   },
   {
     title: "Ethical Publishing Guidelines",
-    description: "We commit to collaborating with transparency and integrity to provide high-quality publications",
+    description:
+      "We commit to collaborating with transparency and integrity to provide high-quality publications",
     icon: "bi-file-earmark-text",
+  },
+  {
+    title: "Global Accessibility",
+    description:
+      "We ensure your research reaches audiences worldwide by supporting open access and broad visibility",
+    icon: "bi-globe",
+  },
+  {
+    title: "Author Support",
+    description:
+      "We provide guidance at every stage of the publishing journey, from submission to post-publication impact",
+    icon: "bi-journal-check",
   },
 ];
 
@@ -233,7 +250,7 @@ export const HomePage = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="w-full pb-0 flex flex-col items-center justify-center space-y-4 text-center"
+                className="w-full mb-10 pb-5 flex flex-col items-center justify-center space-y-4 text-center"
               >
                 <h2 className="text-2xl font-bold text-gray-800 text-center">
                 {highlights[currentIndex].title}
@@ -245,13 +262,15 @@ export const HomePage = () => {
             </AnimatePresence>
 
             {/* Buttons */}
-          <div className="absolute bottom-0 flex gap-4 pt-4">
+          <div className="absolute bottom-0 flex gap-4 pt-4 ">
             <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition">
               Submit Article
             </button>
+            <Link href="/publications/list">
             <button className="border border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-md transition">
-              View All Journals
+              View All Publications
             </button>
+            </Link>
           </div>
           </section>      
         </div>
@@ -319,11 +338,17 @@ export const HomePage = () => {
     <section>
   <div className="w-full bg-white py-8 px-4 md:px-8">
     <div className="max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      {/* Section Title */}
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-10">
+        Our Publishing Commitments
+      </h2>
+
+      {/* Grid Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         {sections.map((section, index) => (
           <div
             key={index}
-            className="bg-white/30 p-6 border-b-2 border-blue-400 rounded-lg shadow-sm 
+            className="bg-white/30 p-0 border-b-2 border-blue-400 rounded-lg shadow-sm 
                        flex flex-col items-start 
                        transition-transform duration-300 ease-in-out 
                        hover:scale-105 hover:shadow-lg"
@@ -344,6 +369,7 @@ export const HomePage = () => {
     </div>
   </div>
 </section>
+
 
 <section className="bg-gray-50 py-12 overflow-hidden">
       <h2 className="text-center text-2xl font-bold text-blue-900 mb-8">
