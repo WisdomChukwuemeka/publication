@@ -3,11 +3,8 @@
 import { useState, useEffect, useContext } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { AuthContext } from "@/context/AuthContext"; // adjust path
-import CategoryAPI from "@/api/CategoryAPI"; // adjust path
+import { CategoryAPI } from "@/api/CategoryAPI"; // adjust path
 import PublicationAPI from "@/api/PublicationAPI"; // adjust path
-import LoadingSpinner from "@/components/LoadingSpinner"; // adjust path
-import ErrorMessage from "@/components/ErrorMessage"; // adjust path
 
 export default function PublicationForm() {
   const { id } = useParams(); // ✅ replaces ReactRouterDOM.useParams
