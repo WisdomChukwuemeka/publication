@@ -20,7 +20,7 @@ export const Footer = () => {
           {/* Column 2: Quick Links */}
           <div>
             <h3 className="text-md font-semibold text-white mb-2">Quick Links</h3>
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1 text-sm grid grid-cols-3 md:grid-cols-2">
               <li><a href="#" className="hover:text-cyan-400 transition">About Us</a></li>
               <li><a href="#" className="hover:text-cyan-400 transition">Journals</a></li>
               <li><a href="#" className="hover:text-cyan-400 transition">Conferences</a></li>

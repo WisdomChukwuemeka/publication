@@ -1,281 +1,254 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { PublicationAPI } from "@/app/services/api";
+import React, { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { PublicationAPI } from '@/app/services/api';
+import { useRouter } from 'next/navigation';
 
-/**
- * PublicationForm with sequential error toasts:
- * - Parses backend validation errors into a queue
- * - Displays only the first error (autoClose: false)
- * - When user fixes that field (simple local check), the toast is dismissed
- *   and the next error is shown.
- */
-
-export default function PublicationForm() {
+// Component for authors to submit a new publication
+const SubmitPublication = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    title: "",
-    abstract: "",
-    content: "",
-    categories: [],
+    title: '',
+    abstract: '',
+    content: '',
     file: null,
+    video_file: null,
+    categories: [],
+    keywords: '',
   });
-  const [loading, setLoading] = useState(false);
 
-  // Queue of remaining errors (objects: { key, message })
-  const [queuedErrors, setQueuedErrors] = useState([]);
-  // The currently active error (displayed toast)
-  const [activeError, setActiveError] = useState(null);
-  // store current toast id so we can dismiss it
-  const currentToastIdRef = useRef(null);
-
-  // Helper: show the active error in a toast (one at a time)
-  useEffect(() => {
-    // Dismiss previous toast if any
-    if (!activeError) {
-      toast.dismiss();
-      currentToastIdRef.current = null;
-      return;
-    }
-
-    // build message
-    const displayKey =
-      activeError.key === "non_field_errors" || activeError.key === "detail"
-        ? ""
-        : `${activeError.key}: `;
-
-    const content = (
-      <div className="max-w-xs">
-        <div className="font-semibold mb-1">{displayKey}{activeError.message}</div>
-
-        {/* If non_field error, provide dismiss button */}
-        {(activeError.key === "non_field_errors" || activeError.key === "detail") && (
-          <div className="mt-2 text-right">
-            <button
-              onClick={() => advanceErrorQueue()}
-              className="text-sm px-3 py-1 bg-gray-100 rounded"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-      </div>
-    );
-
-    toast.dismiss(); // ensure only one toast is visible
-    const id = toast.error(content, {
-      autoClose: false,
-      closeOnClick: false,
-      closeButton: false,
-      draggable: false,
-    });
-    currentToastIdRef.current = id;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeError]);
-
-  // Advance the queue: dismiss current toast and show next error (if any)
-  const advanceErrorQueue = () => {
-    if (currentToastIdRef.current) {
-      toast.dismiss(currentToastIdRef.current);
-      currentToastIdRef.current = null;
-    }
-
-    if (queuedErrors.length > 0) {
-      const [next, ...rest] = queuedErrors;
-      setActiveError(next);
-      setQueuedErrors(rest);
-    } else {
-      setActiveError(null);
-      setQueuedErrors([]);
-    }
+  // Handle text input changes
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Parse backend errors into a queue and initialize activeError
-  const queueBackendErrors = (errorData) => {
-    const parsed = [];
-
-    for (const [key, value] of Object.entries(errorData)) {
-      // value may be an array or string/object; flatten to string
-      let message = "";
-      if (Array.isArray(value)) {
-        message = value.join(" ");
-      } else if (typeof value === "object" && value !== null) {
-        // nested error: stringify briefly
-        message = JSON.stringify(value);
+  // Handle file input changes
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files[0]) {
+      const fileName = files[0].name;
+      console.log(`Selected file for ${name}: ${fileName} (type: ${files[0].type}, size: ${files[0].size} bytes)`);
+      
+      if (name === 'video_file') {
+        // Validate video file type
+        const validVideoExtensions = ['.mp4', '.avi', '.mov'];
+        const isValidExtension = validVideoExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+        if (!isValidExtension) {
+          toast.error(`Video file must be an MP4, AVI, or MOV file. Got: ${fileName}`, { position: 'top-right' });
+          e.target.value = ''; // Clear the input
+          setFormData({ ...formData, [name]: null });
+          return;
+        }
+        setFormData({ ...formData, [name]: files[0] });
+      } else if (name === 'file') {
+        // Validate document file type
+        const validDocExtensions = ['.pdf', '.doc', '.docx'];
+        const isValidExtension = validDocExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+        if (!isValidExtension) {
+          toast.error(`File must be a PDF or Word document. Got: ${fileName}`, { position: 'top-right' });
+          e.target.value = ''; // Clear the input
+          setFormData({ ...formData, [name]: null });
+          return;
+        }
+        setFormData({ ...formData, [name]: files[0] });
       } else {
-        message = String(value);
+        setFormData({ ...formData, [name]: files[0] });
       }
-      parsed.push({ key, message });
-    }
-
-    if (parsed.length > 0) {
-      setActiveError(parsed[0]);
-      setQueuedErrors(parsed.slice(1));
+    } else {
+      console.log(`No file selected for ${name}`);
+      setFormData({ ...formData, [name]: null });
     }
   };
 
-  // Simple heuristic to check if a field is "resolved" locally
-  const isFieldResolved = (field, value) => {
-    switch (field) {
-      case "title":
-      case "abstract":
-      case "content":
-        return String(value || "").trim().length > 0;
-      case "categories":
-        return Array.isArray(value) && value.length > 0 && value[0] !== "";
-      case "file":
-        return value != null;
-      default:
-        // for unknown fields, assume true so we don't block the queue
-        return true;
-    }
+  // Handle category selection (multi-select)
+  const handleCategoryChange = (e) => {
+    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+    setFormData({ ...formData, categories: selected });
   };
 
-  // Centralized field change handler that also checks and advances queue
-  const handleFieldChange = (field, value) => {
-    setFormData((prev) => {
-      // keep categories as array for backend compatibility
-      if (field === "categories") {
-        return { ...prev, categories: Array.isArray(value) ? value : [value] };
-      }
-      return { ...prev, [field]: value };
-    });
-
-    // If the active error corresponds to this field and our simple check passes,
-    // then advance to the next error.
-    if (activeError && activeError.key === field && isFieldResolved(field, value)) {
-      // small timeout to allow state update to render first
-      setTimeout(() => advanceErrorQueue(), 100);
-    }
-  };
-
+  // Handle form submission with client-side validation
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // clear any previous error toasts/queues
-    setQueuedErrors([]);
-    setActiveError(null);
-    toast.dismiss();
+    // Client-side validation
+    if (!formData.title.trim()) {
+      toast.error('Title is required.', { position: 'top-right' });
+      return;
+    }
+    if (!formData.abstract.trim()) {
+      toast.error('Abstract is required.', { position: 'top-right' });
+      return;
+    }
+    if (formData.categories.length === 0) {
+      toast.error('At least one category must be selected.', { position: 'top-right' });
+      return;
+    }
+    if (formData.file && !['.pdf', '.doc', '.docx'].some(ext => formData.file.name.toLowerCase().endsWith(ext))) {
+      toast.error(`File must be a PDF or Word document. Got: ${formData.file.name}`, { position: 'top-right' });
+      return;
+    }
+    if (formData.video_file && !['.mp4', '.avi', '.mov'].some(ext => formData.video_file.name.toLowerCase().endsWith(ext))) {
+      toast.error(`Video file must be an MP4, AVI, or MOV file. Got: ${formData.video_file.name}`, { position: 'top-right' });
+      return;
+    }
+    if (formData.video_file && formData.video_file.size > 50 * 1024 * 1024) {
+      toast.error('Video file size cannot exceed 50MB.', { position: 'top-right' });
+      return;
+    }
+    if (formData.keywords && formData.keywords.length > 500) {
+      toast.error('Keywords cannot exceed 500 characters.', { position: 'top-right' });
+      return;
+    }
+    if (formData.keywords) {
+      const keywordCount = formData.keywords.split(',').filter(k => k.trim()).length;
+      if (keywordCount > 20) {
+        toast.error('Cannot have more than 20 keywords.', { position: 'top-right' });
+        return;
+      }
+    }
 
     const data = new FormData();
-    data.append("title", formData.title);
-    data.append("abstract", formData.abstract);
-    data.append("content", formData.content);
+    data.append('title', formData.title);
+    data.append('abstract', formData.abstract);
+    data.append('content', formData.content || '');
+    if (formData.file) data.append('file', formData.file);
+    if (formData.video_file) data.append('video_file', formData.video_file);
+    formData.categories.forEach((cat) => data.append('categories', cat));
+    data.append('keywords', formData.keywords || '');
 
-    // send categories correctly
-    formData.categories.forEach((cat) => data.append("categories", cat));
-
-    if (formData.file) data.append("file", formData.file);
+    // Log FormData for debugging
+    for (let [key, value] of data.entries()) {
+      console.log(`FormData ${key}: ${value instanceof File ? value.name : value}`);
+    }
 
     try {
-      setLoading(true);
       const response = await PublicationAPI.create(data);
-      toast.success("✅ Publication created successfully!");
-      // clear queue if any
-      setQueuedErrors([]);
-      setActiveError(null);
+      console.log('API Response:', response.data);
+      toast.success('Paper submitted successfully!', {
+        position: 'top-right',
+      });
+      // Reset form
+      setFormData({
+        title: '',
+        abstract: '',
+        content: '',
+        file: null,
+        video_file: null,
+        categories: [],
+        keywords: '',
+      });
       router.push("/");
-      console.log(response.data);
     } catch (err) {
-      if (err.response?.data) {
-        // Put backend errors into our queue system
-        queueBackendErrors(err.response.data);
-      } else {
-        // non-field/server error: show as a single dismissable toast
-        setActiveError({ key: "detail", message: "Error creating publication. Please try again." });
-      }
-    } finally {
-      setLoading(false);
+      const errorMessage = err.response?.data?.detail || 
+        Object.entries(err.response?.data || {})
+          .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+          .join('; ') || 
+        'Error submitting paper';
+      toast.error(errorMessage, { position: 'top-right' });
     }
   };
 
-  // helpers for conditional error styles on inputs
-  const hasActiveError = (field) => activeError && activeError.key === field;
-
   return (
-    <div className="p-6">
-      {/* Toast Container */}
-      <ToastContainer position="top-right" hideProgressBar />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow"
-      >
-        <h1 className="text-2xl font-bold mb-6">Create Publication</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Submit a Publication</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-gray-700">Title</label>
           <input
             type="text"
+            name="title"
             value={formData.title}
-            onChange={(e) => handleFieldChange("title", e.target.value)}
-            placeholder="Title"
-            className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              hasActiveError("title") ? "border-red-500 ring-red-200" : ""
-            }`}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
           />
-
+        </div>
+        <div>
+          <label className="block text-gray-700">Abstract</label>
           <textarea
+            name="abstract"
             value={formData.abstract}
-            onChange={(e) => handleFieldChange("abstract", e.target.value)}
-            placeholder="Abstract"
-            className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              hasActiveError("abstract") ? "border-red-500 ring-red-200" : ""
-            }`}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
             rows="4"
+            required
           />
-
+        </div>
+        <div>
+          <label className="block text-gray-700">Content</label>
           <textarea
+            name="content"
             value={formData.content}
-            onChange={(e) => handleFieldChange("content", e.target.value)}
-            placeholder="Content"
-            className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              hasActiveError("content") ? "border-red-500 ring-red-200" : ""
-            }`}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
             rows="6"
           />
-
-          <div>
-            <p className="font-semibold mb-2">Categories:</p>
-            <select
-              value={formData.categories[0] || ""}
-              onChange={(e) => handleFieldChange("categories", e.target.value)}
-              className={`w-full p-2 border rounded ${
-                hasActiveError("categories") ? "border-red-500" : ""
-              }`}
-            >
-              <option value="">-- Select Category --</option>
-              <option value="journal">Journal Article</option>
-              <option value="conference">Conference Paper</option>
-              <option value="book">Book/Book Chapter</option>
-              <option value="thesis">Thesis/Dissertation</option>
-              <option value="report">Technical Report</option>
-              <option value="review">Review Paper</option>
-              <option value="case_study">Case Study</option>
-              <option value="editorial">Editorial/Opinion</option>
-              <option value="news">News/Blog</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
+        </div>
+        <div>
+          <label className="block text-gray-700">File (PDF or Word)</label>
           <input
             type="file"
-            onChange={(e) => handleFieldChange("file", e.target.files[0])}
-            className={`w-full p-2 border rounded ${hasActiveError("file") ? "border-red-500" : ""}`}
+            name="file"
+            onChange={handleFileChange}
+            className="w-full border p-2 rounded"
+            accept=".pdf,.doc,.docx"
           />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
+        </div>
+        <div>
+          <label className="block text-gray-700">Video File (MP4, AVI, MOV)</label>
+          <input
+            type="file"
+            name="video_file"
+            onChange={handleFileChange}
+            className="w-full border p-2 rounded"
+            accept=".mp4,.avi,.mov"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700">Categories</label>
+          <select
+            name="categories"
+            multiple
+            value={formData.categories}
+            onChange={handleCategoryChange}
+            className="w-full border p-2 rounded"
           >
-            {loading ? "Creating..." : "Create"}
-          </button>
-        </form>
-      </motion.div>
+            <option value="" disabled>Select categories</option>
+            <option value="journal">Journal Article</option>
+            <option value="conference">Conference Paper</option>
+            <option value="book">Book/Book Chapter</option>
+            <option value="thesis">Thesis/Dissertation</option>
+            <option value="report">Technical Report</option>
+            <option value="review">Review Paper</option>
+            <option value="case_study">Case Study</option>
+            <option value="editorial">Editorial/Opinion</option>
+            <option value="news">News/Blog</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-700">Keywords (comma-separated)</label>
+          <input
+            type="text"
+            name="keywords"
+            value={formData.keywords}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            placeholder="e.g., machine learning, AI, data science"
+          />
+        </div>
+        <button
+          type="submit"
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Submit
+        </button>
+      </form>
+      <ToastContainer />
     </div>
   );
-}
+};
+
+export default SubmitPublication;
